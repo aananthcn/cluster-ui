@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     parser.addVersionOption();
     QCommandLineOption serverOpt(
         QStringLiteral("vhal-server"), // option name
-        QStringLiteral("vhal-core gRPC server address (host:port)"), // option description
+        QStringLiteral("vhal-core gRPC server address (pc:port)"), // option description
         QStringLiteral("address"), // option value name, will contain the gRPC server address
         QStringLiteral("localhost:50051")); // default value
     parser.addOption(serverOpt);
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
     // For RPi eglfs: set QT_QPA_PLATFORM=eglfs in environment
     const QUrl url(QStringLiteral("qrc:/ClusterUI/qml/ClusterRoot.qml"));
 
-    // connect objectCreationFailed signal to call app.exit() 
+    // connect objectCreationFailed signal to call app.exit()
     QObject::connect(
         &engine, &QQmlApplicationEngine::objectCreationFailed,
         &app,    [&app](const QUrl &) { app.exit(1); },

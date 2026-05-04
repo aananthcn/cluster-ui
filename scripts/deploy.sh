@@ -2,14 +2,14 @@
 set -euo pipefail
 
 # Arguments to this script
-RPI_TARGET="${1:-aananth@192.168.10.10}"   # user@host
+RPI_TARGET="${1:-aananth@192.168.10.10}"   # user@pc
 VHAL_SERVER="${2:-localhost:50051}"
 
 RPI_USER="${RPI_TARGET%%@*}"
 RPI_IP="${RPI_TARGET##*@}"
 
 PROJECT_DIR="$(pwd)"
-BUILD_DIR="${PROJECT_DIR}/build/rpi5"
+BUILD_DIR="${PROJECT_DIR}/build/rpi"
 REMOTE_DIR="/home/${RPI_USER}/cluster"
 
 # Working directory check
@@ -25,16 +25,16 @@ echo ""
 QT_RPI_PATH="${QT_RPI_PATH:-${HOME}/Qt/6.8.3/gcc_64}"
 
 echo "==> Conan install + CMake build..."
-conan install . --output-folder=build/rpi5 --build=missing -pr profiles/rpi5
+conan install . --output-folder=build/rpi --build=missing -pr profiles/rpi
 # shellcheck source=/dev/null
-source build/rpi5/conanbuild.sh
-cmake -B build/rpi5 \
-      -DCMAKE_TOOLCHAIN_FILE=build/rpi5/conan_toolchain.cmake \
+source build/rpi/conanbuild.sh
+cmake -B build/rpi \
+      -DCMAKE_TOOLCHAIN_FILE=build/rpi/conan_toolchain.cmake \
       -DCMAKE_PREFIX_PATH="${QT_RPI_PATH}" \
       -DQT_HOST_PATH="${QT_RPI_PATH}" \
       -DCMAKE_BUILD_TYPE=Release \
       -GNinja
-cmake --build build/rpi5 -j"$(nproc)"
+cmake --build build/rpi -j"$(nproc)"
 
 echo "==> Deploying to ${RPI_USER}@${RPI_IP}:${REMOTE_DIR}..."
 ssh "${RPI_USER}@${RPI_IP}" "mkdir -p ${REMOTE_DIR}"
@@ -42,7 +42,7 @@ rsync -avz --delete \
     "${BUILD_DIR}/cluster-ui" \
     "${RPI_USER}@${RPI_IP}:${REMOTE_DIR}/"
 
-echo "==> Launching on RPi5..."
+echo "==> Launching on RPi..."
 ssh "${RPI_USER}@${RPI_IP}" bash <<REMOTE
     export QT_QPA_PLATFORM=eglfs
     export QSG_RHI_BACKEND=opengl

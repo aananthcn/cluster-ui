@@ -24,7 +24,7 @@ Replace any manual `find_package` / `FetchContent` dependency management with Co
   cmake -B build/Release -DCMAKE_TOOLCHAIN_FILE=build/Release/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
   cmake --build build/Release
   ```
-- Cross-compilation profiles exist for: `linux-x86` (Ubuntu 22.04, GCC 11), `rpi5` (Raspberry Pi OS, aarch64), `qnx-aarch64`.
+- Cross-compilation profiles exist for: `linux-x86` (Ubuntu 22.04, GCC 11), `rpi` (Raspberry Pi OS, aarch64), `qnx-aarch64`.
 
 ### What NOT to do
 - Do not add `protobuf` as a direct Conan dependency — gRPC pulls it in.
@@ -85,7 +85,7 @@ Add others if the existing UDP/synthetic bridge supplied them.
 ### Intent
 When the driver engages Reverse gear the instrument cluster must display a live
 rear view camera feed in a Picture-in-Picture overlay on the right side of the
-screen.  The camera runs on the Android partition of the RPi5 and transmits
+screen.  The camera runs on the Android partition of the RPi and transmits
 H.264-encoded video over RTP/UDP.  ClusterUI receives and decodes the stream
 using GStreamer and renders it via Qt Multimedia's `VideoOutput` QML type.
 
@@ -96,7 +96,7 @@ set `DriveMode::REVERSE`.  `main.cpp` connects `VehicleBridge::stateChanged` to
 are required — the existing `driveMode` property is sufficient.
 
 ### GStreamer pipeline
-The following pipeline was verified end-to-end on the RPi5.  It is constructed
+The following pipeline was verified end-to-end on the RPi.  It is constructed
 programmatically in `RvcStreamHandler::start()` via `gst_parse_launch()`:
 
 ```
@@ -105,7 +105,7 @@ udpsrc port=5004
   ! rtph264depay
   ! video/x-h264,stream-format=byte-stream,alignment=au
   ! h264parse
-  ! avdec_h264          ← software decode; replace with v4l2h264dec for RPi5 HW
+  ! avdec_h264          ← software decode; replace with v4l2h264dec for RPi HW
   ! videoconvert
   ! video/x-raw,format=RGBA
   ! appsink name=rvc_appsink sync=false max-buffers=2 drop=true
@@ -145,7 +145,7 @@ stalling the pipeline when the Qt main thread is briefly busy.
 ### CMakeLists.txt requirements
 - `Qt6::Multimedia` must be linked (provides `QVideoSink`, `QVideoFrame`, etc.).
   Do **not** add `Qt6::MultimediaQuick` as a required component — it is not
-  present in all sysroots (e.g. the RPi5 cross-compile SDK).  The `VideoOutput`
+  present in all sysroots (e.g. the RPi cross-compile SDK).  The `VideoOutput`
   QML type it backs is loaded at runtime as a QML plugin; no link-time dependency
   is needed.
 - GStreamer is a **system dependency** found via `pkg-config`, not Conan:
@@ -155,8 +155,8 @@ stalling the pipeline when the Qt main thread is briefly busy.
       gstreamer-1.0 gstreamer-app-1.0 gstreamer-video-1.0)
   ```
   Link with `PkgConfig::GSTREAMER`.
-- On Ubuntu host: `sudo apt install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev`
-- On RPi5: same package names; `gstreamer1.0-plugins-bad` also needed for
+- On Ubuntu pc: `sudo apt install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev`
+- On RPi: same package names; `gstreamer1.0-plugins-bad` also needed for
   `avdec_h264` (provided by `gstreamer1.0-libav`).
 
 ---
@@ -193,7 +193,7 @@ ClusterUI/
 │   └── themes/
 ├── profiles/
 │   ├── linux-x86
-│   ├── rpi5
+│   ├── rpi
 │   └── qnx-aarch64
 └── build/                          <- generated, not in source control
 ```
@@ -207,4 +207,4 @@ ClusterUI/
 - Qt6 and gRPC both bring in their own CMake integration; ensure `CMakeDeps` generated files do not conflict with Qt's own `find_package` machinery.
 - vhal-core's gRPC server address should be runtime-configurable, not hardcoded, to support both local dev (localhost) and embedded targets where vhal-core runs as a separate process (possibly on a different IP/port).
 - `VideoOutput.videoSink` (the read-only `QVideoSink*` property) is only available from Qt 6.5 onwards — the project already requires `REQUIRES 6.5` in `qt_standard_project_setup()`.
-- On RPi5 with `eglfs`, ensure the GStreamer `videoconvert` element can output `RGBA`; if a GL-based sink is later added, the context must be shared with Qt's OpenGL context.
+- On RPi with `eglfs`, ensure the GStreamer `videoconvert` element can output `RGBA`; if a GL-based sink is later added, the context must be shared with Qt's OpenGL context.

@@ -34,7 +34,7 @@ VehicleBridge::VehicleBridge(const QString &serverAddress, QObject *parent)
                                   Q_ARG(int,   intVal));
     }, /*intervalMs=*/16);
 
-    qDebug() << "[VehicleBridge] polling vhal-core at" << serverAddress << "@ 60 Hz";
+    qDebug() << "[cluster-ui::VehicleBridge] polling vhal-core at" << serverAddress << "@ 60 Hz";
 }
 
 

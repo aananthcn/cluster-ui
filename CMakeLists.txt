@@ -15,14 +15,23 @@ set(CMAKE_AUTORCC ON)
 #   cmake --build build/Release
 
 find_package(Qt6 REQUIRED COMPONENTS Core Qml Quick QuickControls2 Multimedia)
+
+# When cross-compiling, the host Qt cmake state (loaded via QT_HOST_PATH) can
+# leave QT6_IS_SHARED_LIBS_BUILD unset or FALSE, causing qt6_import_qml_plugins
+# to try to statically link QML plugins that don't exist in the cross scope.
+# RPi Qt is a shared-library build so plugins are runtime-loaded; skip static
+# linking by asserting the correct value here.
+if(CMAKE_CROSSCOMPILING)
+    set(QT6_IS_SHARED_LIBS_BUILD TRUE)
+endif()
 find_package(gRPC REQUIRED)
 find_package(Protobuf REQUIRED)   # pulled in by gRPC; found via CMakeDeps
 
-# GStreamer — detected via pkg-config (available on both host Ubuntu and RPi5)
+# GStreamer — detected via pkg-config (available on both pc Ubuntu and RPi)
 find_package(PkgConfig REQUIRED)
 
 # When cross-compiling, redirect pkg-config to the sysroot so it finds the
-# target's GStreamer packages instead of the host's.  Without this, pkg-config
+# target's GStreamer packages instead of the pc's.  Without this, pkg-config
 # returns HOST (x86_64) include paths such as /usr/include/x86_64-linux-gnu
 # and /usr/lib/x86_64-linux-gnu/glib-2.0/include.  Because -isystem flags from
 # pkg-config are passed as absolute paths they are NOT prefixed with the sysroot

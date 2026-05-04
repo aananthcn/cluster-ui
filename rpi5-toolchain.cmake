@@ -3,16 +3,16 @@ set(CMAKE_SYSTEM_PROCESSOR aarch64)
 
 # ── Sysroot ───────────────────────────────────────────────────────────────────
 # Inside Docker the sysroot is always mounted at /sdk/root
-# On the host: $HOME/sdk/rpi5/root
+# On the pc: $HOME/sdk/rpi/root
 if(EXISTS "/sdk/root")
     set(RPI_SYSROOT "/sdk/root")
 else()
-    # Fallback for running cmake outside Docker (native host builds)
+    # Fallback for running cmake outside Docker (native pc builds)
     get_filename_component(_HERE "${CMAKE_CURRENT_LIST_FILE}" DIRECTORY)
     get_filename_component(RPI_SYSROOT "${_HERE}/../root" ABSOLUTE)
 endif()
 
-message(STATUS "RPi5 sysroot: ${RPI_SYSROOT}")
+message(STATUS "RPi sysroot: ${RPI_SYSROOT}")
 
 # ── Compilers ─────────────────────────────────────────────────────────────────
 set(CMAKE_C_COMPILER   aarch64-linux-gnu-gcc-14)

@@ -21,7 +21,7 @@
 //      Qt::QueuedConnection.
 //
 // RTP stream expected at UDP port 5004 (default), H.264 payload 96.
-// To use hardware decode on RPi5 replace avdec_h264 with v4l2h264dec.
+// To use hardware decode on RPi replace avdec_h264 with v4l2h264dec.
 class RvcStreamHandler : public QObject
 {
     Q_OBJECT

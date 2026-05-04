@@ -25,7 +25,7 @@ RvcStreamHandler::~RvcStreamHandler()
 void RvcStreamHandler::setVideoSink(QVideoSink *sink)
 {
     m_videoSink = sink;
-    qDebug() << "[RvcStreamHandler] Video sink registered:" << sink;
+    qDebug() << "[cluster-ui::RvcStreamHandler] Video sink registered:" << sink;
 }
 
 
@@ -34,7 +34,7 @@ void RvcStreamHandler::start()
     if (m_active.load()) return;
 
     if (!m_videoSink) {
-        qWarning() << "[RvcStreamHandler] start() called before setVideoSink() — aborting";
+        qWarning() << "[cluster-ui::RvcStreamHandler] start() called before setVideoSink() — aborting";
         return;
     }
 
@@ -42,7 +42,7 @@ void RvcStreamHandler::start()
     // This mirrors the gst-launch-1.0 pipeline that was verified on the device,
     // with autovideosink replaced by appsink so frames can be pulled into Qt.
     //
-    // To use RPi5 hardware H.264 decode, replace avdec_h264 with v4l2h264dec.
+    // To use RPi hardware H.264 decode, replace avdec_h264 with v4l2h264dec.
     //
     // Note: gst_parse_launch receives the string after shell processing, so no
     // extra shell-style quoting is needed around the caps values.
@@ -61,7 +61,7 @@ void RvcStreamHandler::start()
     GError *parseErr = nullptr;
     m_pipeline = gst_parse_launch(pipe.toUtf8().constData(), &parseErr);
     if (parseErr) {
-        qWarning() << "[RvcStreamHandler] Pipeline parse error:" << parseErr->message;
+        qWarning() << "[cluster-ui::RvcStreamHandler] Pipeline parse error:" << parseErr->message;
         g_error_free(parseErr);
         m_pipeline = nullptr;
         return;
@@ -69,7 +69,7 @@ void RvcStreamHandler::start()
 
     m_appsink = gst_bin_get_by_name(GST_BIN(m_pipeline), "rvc_appsink");
     if (!m_appsink) {
-        qWarning() << "[RvcStreamHandler] appsink element not found in pipeline";
+        qWarning() << "[cluster-ui::RvcStreamHandler] appsink element not found in pipeline";
         gst_object_unref(m_pipeline);
         m_pipeline = nullptr;
         return;
@@ -81,7 +81,7 @@ void RvcStreamHandler::start()
     gst_app_sink_set_callbacks(GST_APP_SINK(m_appsink), &callbacks, this, nullptr);
 
     if (gst_element_set_state(m_pipeline, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
-        qWarning() << "[RvcStreamHandler] Failed to set pipeline to PLAYING";
+        qWarning() << "[cluster-ui::RvcStreamHandler] Failed to set pipeline to PLAYING";
         stop();
         return;
     }
@@ -89,7 +89,7 @@ void RvcStreamHandler::start()
     m_active.store(true);
     m_busTimer->start(1000);
     emit activeChanged(true);
-    qDebug() << "[RvcStreamHandler] RTP stream started on UDP port" << m_rtpPort;
+    qDebug() << "[cluster-ui::RvcStreamHandler] RTP stream started on UDP port" << m_rtpPort;
 }
 
 
@@ -110,7 +110,7 @@ void RvcStreamHandler::stop()
 
     if (m_active.exchange(false)) {
         emit activeChanged(false);
-        qDebug() << "[RvcStreamHandler] RTP stream stopped";
+        qDebug() << "[cluster-ui::RvcStreamHandler] RTP stream stopped";
     }
 }
 
@@ -130,9 +130,9 @@ void RvcStreamHandler::checkBus()
             GError *gerr = nullptr;
             gchar  *dbg  = nullptr;
             gst_message_parse_error(msg, &gerr, &dbg);
-            qWarning() << "[RvcStreamHandler] GStreamer error:" << gerr->message;
+            qWarning() << "[cluster-ui::RvcStreamHandler] GStreamer error:" << gerr->message;
             if (dbg) {
-                qDebug() << "[RvcStreamHandler] debug info:" << dbg;
+                qDebug() << "[cluster-ui::RvcStreamHandler] debug info:" << dbg;
                 g_free(dbg);
             }
             g_error_free(gerr);
@@ -142,7 +142,7 @@ void RvcStreamHandler::checkBus()
             return;
         }
         case GST_MESSAGE_EOS:
-            qDebug() << "[RvcStreamHandler] End of stream";
+            qDebug() << "[cluster-ui::RvcStreamHandler] End of stream";
             gst_message_unref(msg);
             gst_object_unref(bus);
             stop();
@@ -195,7 +195,7 @@ GstFlowReturn RvcStreamHandler::handleNewSample(GstAppSink *sink)
                                   GST_VIDEO_FRAME_PLANE_DATA(&gstFrame, 0));
 
     // Deep-copy into a QByteArray before releasing the GStreamer buffer.
-    // For PiP resolutions (≤720p) this is fast enough on RPi5.
+    // For PiP resolutions (≤720p) this is fast enough on RPi.
     QByteArray frameBytes(height * gstStride, Qt::Uninitialized);
     memcpy(frameBytes.data(), gstData, static_cast<size_t>(height * gstStride));
 

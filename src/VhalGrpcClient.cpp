@@ -16,7 +16,7 @@ VhalGrpcClient::VhalGrpcClient(const std::string &serverAddress)
     auto state = m_channel->GetState(/*try_to_connect=*/true);
     m_connected.store(state != GRPC_CHANNEL_SHUTDOWN);
 
-    qDebug() << "[VhalGrpcClient] connecting to" << QString::fromStdString(serverAddress);
+    qDebug() << "[cluster-ui::VhalGrpcClient] connecting to" << QString::fromStdString(serverAddress);
 }
 
 VhalGrpcClient::~VhalGrpcClient()
@@ -40,7 +40,7 @@ bool VhalGrpcClient::getProperty(int32_t propId, vhal::VehiclePropValue &outValu
     auto status = m_stub->GetValues(&ctx, request, &results);
     if (!status.ok()) {
         m_connected.store(false);
-        qWarning() << "[VhalGrpcClient] GetValues failed:"
+        qWarning() << "[cluster-ui::VhalGrpcClient] GetValues failed:"
                    << QString::fromStdString(status.error_message());
         return false;
     }
@@ -74,7 +74,7 @@ VhalGrpcClient::getProperties(const std::vector<int32_t> &propIds)
     auto status = m_stub->GetValues(&ctx, request, &results);
     if (!status.ok()) {
         m_connected.store(false);
-        qWarning() << "[VhalGrpcClient] GetValues (batch) failed:"
+        qWarning() << "[cluster-ui::VhalGrpcClient] GetValues (batch) failed:"
                    << QString::fromStdString(status.error_message());
         return {};
     }
@@ -115,7 +115,7 @@ void VhalGrpcClient::stopPolling()
 
 void VhalGrpcClient::pollLoop()
 {
-    qDebug() << "[VhalGrpcClient] poll thread started, interval =" << m_intervalMs << "ms";
+    qDebug() << "[cluster-ui::VhalGrpcClient] poll thread started, interval =" << m_intervalMs << "ms";
 
     while (m_running.load()) {
         auto wakeAt = std::chrono::steady_clock::now()
@@ -131,5 +131,5 @@ void VhalGrpcClient::pollLoop()
         std::this_thread::sleep_until(wakeAt);
     }
 
-    qDebug() << "[VhalGrpcClient] poll thread exiting";
+    qDebug() << "[cluster-ui::VhalGrpcClient] poll thread exiting";
 }
