@@ -18,6 +18,7 @@ VehicleBridge::VehicleBridge(const QString &serverAddress, QObject *parent)
         VehicleProperty::GEAR_SELECTION,
         VehicleProperty::ENGINE_COOLANT_TEMP,
         VehicleProperty::PARKING_BRAKE_ON,
+        VehicleProperty::VOICE_ASSIST_STATE,
     };
 
     // Poll all properties on a background thread at ~60 Hz (16 ms).
@@ -89,6 +90,10 @@ void VehicleBridge::onPropertyUpdate(int propId, float floatVal, int intVal)
 
     case VehicleProperty::PARKING_BRAKE_ON:
         m_state.park_brake = (intVal != 0); // False == dis-engaged
+        break;
+
+    case VehicleProperty::VOICE_ASSIST_STATE:
+        m_state.voice_assist_state = intVal;
         break;
 
     default:

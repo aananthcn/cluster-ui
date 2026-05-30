@@ -14,6 +14,10 @@ set(CMAKE_AUTORCC ON)
 #         -DCMAKE_BUILD_TYPE=Release
 #   cmake --build build/Release
 
+# Qt — installed via Qt Online Installer, path injected by conanfile.py generate().
+if(DEFINED QT_PREFIX_PATH)
+    list(PREPEND CMAKE_PREFIX_PATH "${QT_PREFIX_PATH}")
+endif()
 find_package(Qt6 REQUIRED COMPONENTS Core Qml Quick QuickControls2 Multimedia)
 
 # When cross-compiling, the host Qt cmake state (loaded via QT_HOST_PATH) can
@@ -55,10 +59,25 @@ pkg_check_modules(GSTREAMER REQUIRED IMPORTED_TARGET
 )
 
 # ── vhal-core packages ────────────────────────────────────────────────────────
-# ClusterUI depends only on vhal-types (AIDL headers, stubs) and
-# vhal-ipc-grpc (VehicleServer::Stub). vhal-server is not needed at build time.
-add_subdirectory(../vhal-core/packages/vhal-types    ${CMAKE_BINARY_DIR}/vhal-types    EXCLUDE_FROM_ALL)
-add_subdirectory(../vhal-core/packages/vhal-ipc-grpc ${CMAKE_BINARY_DIR}/vhal-ipc-grpc EXCLUDE_FROM_ALL)
+# Consumed as Conan packages — install them first:
+#   conan create ~/labs/networking/vhal-core/packages/vhal-types -pr profiles/linux-x86
+#   conan create ~/labs/networking/vhal-core/packages/vhal-ipc-grpc -pr profiles/linux-x86
+find_package(vhal-types    REQUIRED)
+find_package(vhal-ipc-grpc REQUIRED)
+
+# CMakeDeps (Conan) does not propagate component-level includedirs into the
+# generated cmake INTERFACE_INCLUDE_DIRECTORIES (known limitation in Conan 2.x).
+# The _PACKAGE_FOLDER_RELEASE variables ARE set correctly, so add each package's
+# include root explicitly.  Order matters: Conan packages must precede the system
+# headers that ship older versions of the same library (e.g. protobuf 3.x vs 5.x).
+include_directories(
+    "${abseil_PACKAGE_FOLDER_RELEASE}/include"
+    "${protobuf_PACKAGE_FOLDER_RELEASE}/include"
+    "${grpc_PACKAGE_FOLDER_RELEASE}/include"
+    "${re2_PACKAGE_FOLDER_RELEASE}/include"
+    "${vhal-types_PACKAGE_FOLDER_RELEASE}/include"
+    "${vhal-ipc-grpc_PACKAGE_FOLDER_RELEASE}/include"
+)
 
 # ── Qt setup ──────────────────────────────────────────────────────────────────
 if(Qt6_VERSION VERSION_GREATER_EQUAL "6.8")
@@ -87,6 +106,7 @@ qt_add_qml_module(cluster-ui
         qml/Speedometer.qml
         qml/Tachometer.qml
         qml/PipOverlay.qml
+        qml/Velan.qml
         qml/themes/Sport.qml
         qml/themes/Normal.qml
     RESOURCES
@@ -103,11 +123,9 @@ target_link_libraries(cluster-ui PRIVATE
     Qt6::Quick
     Qt6::QuickControls2
     Qt6::Multimedia
-    gRPC::grpc++
-    protobuf::libprotobuf
-    VehicleServerProtoStub
-    AidlPropertyHeaders
-    AndroidStubs
+    vhal-ipc-grpc::VehicleServerProtoStub
+    vhal-types::AidlPropertyHeaders
+    vhal-types::AndroidStubs
     PkgConfig::GSTREAMER
 )
 

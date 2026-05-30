@@ -20,6 +20,7 @@ namespace VehicleProperty {
     constexpr int32_t GEAR_SELECTION         = 0x11400400; // int32, VehicleGear enum
     constexpr int32_t ENGINE_COOLANT_TEMP    = 0x11600301; // float, °C
     constexpr int32_t PARKING_BRAKE_ON       = 0x11200402; // int32, Boolean
+    constexpr int32_t VOICE_ASSIST_STATE     = 0x21400002; // int32, VoiceAssistantState enum
 }
 
 // Callback invoked on the background poll thread for each property value.

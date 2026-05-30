@@ -170,5 +170,24 @@ Window {
             }
             visible: true
         }
+
+        // ── Velan voice assistant widget ──────────────────────────────────────
+        Velan {
+            id: velan
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: 20
+            z: pipOverlay.z + 1
+        }
+    }
+
+    // ── Screen border — active when voice assistant is not idle ───────────────
+    // Border colour matches Velan.innerColor (#d946ef) — update both together.
+    Rectangle {
+        anchors.fill: parent
+        color:        "transparent"
+        border.color: velan.innerColor
+        border.width: 2
+        visible:      vehicle.voiceAssistState !== 0
+        z:            mainContainer.z + 1
     }
 }

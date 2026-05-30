@@ -21,7 +21,8 @@ class VehicleBridge : public QObject
     Q_PROPERTY(bool    warnEngine READ warnEngine NOTIFY stateChanged)
     Q_PROPERTY(bool    warnBatt   READ warnBatt   NOTIFY stateChanged)
     Q_PROPERTY(bool    warnBrake  READ warnBrake  NOTIFY stateChanged)
-    Q_PROPERTY(int     driveMode  READ driveMode  NOTIFY stateChanged)
+    Q_PROPERTY(int     driveMode       READ driveMode       NOTIFY stateChanged)
+    Q_PROPERTY(int     voiceAssistState READ voiceAssistState NOTIFY stateChanged)
 
 public:
     explicit VehicleBridge(const QString &serverAddress = QStringLiteral("localhost:50051"),
@@ -36,7 +37,8 @@ public:
     bool  warnEngine() const { return m_state.warn_engine; }
     bool  warnBatt()   const { return m_state.warn_battery; }
     bool  warnBrake()  const { return m_state.park_brake; }
-    int   driveMode()  const { return static_cast<int>(m_state.drive_mode); }
+    int   driveMode()        const { return static_cast<int>(m_state.drive_mode); }
+    int   voiceAssistState() const { return m_state.voice_assist_state; }
 
 signals:
     void stateChanged();
