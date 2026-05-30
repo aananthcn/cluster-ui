@@ -171,23 +171,16 @@ Window {
             visible: true
         }
 
-        // ── Velan voice assistant widget ──────────────────────────────────────
-        Velan {
-            id: velan
-            anchors.horizontalCenter: parent.horizontalCenter
-            y: 20
-            z: pipOverlay.z + 1
-        }
     }
 
-    // ── Screen border — active when voice assistant is not idle ───────────────
-    // Border colour matches Velan.innerColor (#d946ef) — update both together.
+    // ── Screen border — active during RECORDING / THINKING / TALKING ─────────
+    // Colors match Velan SiriOrb stateCoreColor: 2=orange, 3=violet, 4=cyan
     Rectangle {
         anchors.fill: parent
         color:        "transparent"
-        border.color: velan.innerColor
-        border.width: 2
-        visible:      vehicle.voiceAssistState !== 0
+        border.color: ({2: "#FF6D00", 3: "#7C4DFF", 4: "#00E5FF"})[vehicle.voiceAssistState] || "#FF6D00"
+        border.width: 4
+        visible:      vehicle.voiceAssistState >= 2
         z:            mainContainer.z + 1
     }
 }

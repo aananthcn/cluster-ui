@@ -75,9 +75,16 @@ include_directories(
     "${protobuf_PACKAGE_FOLDER_RELEASE}/include"
     "${grpc_PACKAGE_FOLDER_RELEASE}/include"
     "${re2_PACKAGE_FOLDER_RELEASE}/include"
-    "${vhal-types_PACKAGE_FOLDER_RELEASE}/include"
-    "${vhal-ipc-grpc_PACKAGE_FOLDER_RELEASE}/include"
 )
+# vhal-core headers: set by Conan in standalone mode; in ic-rpi superbuild the
+# IMPORTED targets carry the correct INTERFACE_INCLUDE_DIRECTORIES from the
+# install tree, so no explicit path is needed.
+if(vhal-types_PACKAGE_FOLDER_RELEASE)
+    include_directories("${vhal-types_PACKAGE_FOLDER_RELEASE}/include")
+endif()
+if(vhal-ipc-grpc_PACKAGE_FOLDER_RELEASE)
+    include_directories("${vhal-ipc-grpc_PACKAGE_FOLDER_RELEASE}/include")
+endif()
 
 # ── Qt setup ──────────────────────────────────────────────────────────────────
 if(Qt6_VERSION VERSION_GREATER_EQUAL "6.8")
@@ -106,7 +113,6 @@ qt_add_qml_module(cluster-ui
         qml/Speedometer.qml
         qml/Tachometer.qml
         qml/PipOverlay.qml
-        qml/Velan.qml
         qml/themes/Sport.qml
         qml/themes/Normal.qml
     RESOURCES
